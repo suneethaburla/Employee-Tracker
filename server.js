@@ -1,14 +1,14 @@
 const inquirer = require("inquirer");
 const cTable = require('console.table');
 const mysql = require("mysql");
-var connection = mysql.createConnection({
+const db = require('./db');
+
+const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: 'password',
-    database: 'employee_db'
-});
-
-
+    database: 'employee_db',
+})
 function start() {
     connection.connect(function start() {
         inquirer
@@ -18,14 +18,16 @@ function start() {
                 message: "What would you like to do?",
                 choices: [
                     "View All Employees",
-                    "View All Employees by department",
-                    "View All Employees by manager",
-                    "Add Employee",
-                    "Remove Employee",
-                    "Update Employee Role",
-                    "Update Employee Manager",
                     "View All Roles",
                     "View All Departments",
+                    "Add Employee",
+                    "Add Role",
+                    "Add Department",
+                    "Remove Employee",
+                    "Remove Role",
+                    "Remove Department",
+                    "Update Employee Role",
+                    "Update Employee Manager",
                     "Exit"
                 ]
             })
@@ -34,29 +36,35 @@ function start() {
                     case "View All Employees":
                         viewAllEmployees();
                         break;
-                    case "View All Employees by department":
-                        searchByDept();
-                        break;
-                    case "View All Employees by manager":
-                        searchByManager();
-                        break;
-                    //   case "Add Employee":
-                    //     addEmployee();
-                    //     break;
-                    case "Remove Employee":
-                        removeEmployee();
-                        break;
-                    case "Update Employee Role":
-                        updateRole();
-                        break;
-                    //   case "Update Employee Manager":
-                    //     updateManager();
-                    //     break;
                     case "View All Roles":
                         viewAllRoles();
                         break;
                     case "View All Departments":
-                        viewAllDepts();
+                        viewAllDepartments();
+                        break;
+                    case "Add Employee":
+                        addEmployee();
+                        break;
+                    case "Add Role":
+                        addRole();
+                        break;
+                    case "Add Department":
+                        addDepartment();
+                        break;
+                    case "Remove Employee":
+                        removeEmployee();
+                        break;
+                    case "Remove Role":
+                        removeRole();
+                        break;
+                    case "Remove Department":
+                        removeDepartment();
+                        break;
+                    case "Update Employee Role":
+                        updateRole();
+                        break;
+                    case "Update Employee Manager":
+                        updateManager();
                         break;
                     case "Exit":
                         return;
@@ -65,140 +73,212 @@ function start() {
     });
 }
 
-function viewAllEmployees() {
-    const query = `SELECT * FROM employees;`;
-    connection.query(query, (err, employee) => {
-        if (err) throw err;
-        console.table(`${employee.length} Employees found:`, employee);
-        start();
-    });
+async function viewAllEmployees() {
+    const employees = await db.findAllEmployees();
+    console.table(`${employees.length} employees found:`, employees);
+    start();
 }
 
-function viewAllRoles() {
-    const query = `SELECT title FROM employees;`;
-    connection.query(query, (err, employee) => {
-        if (err) throw err;
-        console.table(`${employee.length} Roles found:`, employee);
-        start();
-    });
+async function viewAllRoles() {
+    const roles = await db.findAllRoles();
+    console.table(`${roles.length} roles found:`, roles);
+    start();
 }
 
-function viewAllDepts() {
-    const query = `SELECT department FROM employees;`;
-    connection.query(query, (err, employee) => {
-        if (err) throw err;
-        console.table(`${employee.length} departments found:`, employee);
-        start();
-    });
+async function viewAllDepartments() {
+    const departments = await db.findAllDepartments();
+    console.table(`${departments.length} departments found:`, departments);
+    start();
 }
 
-function searchByDept() {
+async function addDepartment() {
+    const departments = await db.findAllDepartments();
+    const departmentChoices = departments.map(({ id, name }) => ({
+        name: name,
+        value: id
+    }));
     inquirer
-        .prompt({
-            name: "department",
-            type: "list",
-            message: "Please select a department",
-            choices: [
-                "IT",
-                "DevOps",
-                "PMO"
-            ]
-        })
+        .prompt(
+            {
+                name: "name",
+                type: "input",
+                message: "Please enter the name of the department",
+            }
+        )
         .then(answer => {
-            viewByDept(answer.department);
+            db.createDepartment(answer);
+            console.log(`Added ${answer.name} to the database`);
+            start();
+        })
+
+}
+
+async function addRole() {
+    const departments = await db.findAllDepartments();
+    const departmentChoices = departments.map(({ id, name }) => ({
+        name: name,
+        value: id
+    }));
+    inquirer
+        .prompt(
+            {
+                name: "title",
+                type: "input",
+                message: "Please enter the title of the new role",
+            },
+            {
+                name: "salary",
+                type: "input",
+                message: "Please enter the salary of the new role",
+            },
+            {
+                name: "department_id",
+                type: "list",
+                choices: departmentChoices,
+                message: "Please choose the department of the new role",
+            }
+        )
+        .then(answer => {
+            db.createRole(answer);
+            console.log(`Added ${answer.title} to the database`);
+            start();
+        })
+
+}
+
+
+async function addEmployee() {
+    const departments = await db.findAllDepartments();
+    const departmentChoices = departments.map(({ id, name }) => ({
+        name: name,
+        value: id
+    }));
+    const roles = await db.findAllRoles();
+    const roleChoices = roles.map(({ department_id, title }) => ({
+        title: title,
+        value: department_id
+    }));
+    const managers = await db.findAllmanagers();
+    const managerChoices = managers.map(({ manager_id, first_name }) => ({
+        first_name: first_name,
+        value: manager_id
+    }));
+    inquirer
+        .prompt(
+            {
+                name: "first_name",
+                type: "input",
+                message: "Please enter the first name",
+            },
+            {
+                name: "last_name",
+                type: "input",
+                message: "Please enter the last name",
+            },
+            {
+                name: "department_id",
+                type: "list",
+                choices: departmentChoices,
+                message: "Please choose the department",
+            },
+            {
+                name: "role_id",
+                type: "list",
+                choices: roleChoices,
+                message: "Please choose the role",
+            },
+            {
+                name: "manager_id",
+                type: "list",
+                choices: managerChoices,
+                message: "Please choose the manager",
+            }
+        )
+        .then(answer => {
+            db.createEmployee(answer);
+            console.log(`Added ${answer.first_name} " " ${answer.last_name} to the database`);
+            start();
+        })
+
+}
+
+
+async function removeDepartment() {
+	const departments = await db.findAllDepartments();
+
+	const departmentChoices = departments.map(({ name, id}) => ({
+        name: name,
+        value:id
+    }));
+    console.log(departments);
+
+	inquirer
+        .prompt(
+            {
+                name: "department",
+                type: "list",
+                message: "Select the department to remove",
+                choices:departmentChoices
+            }
+        )
+        .then(answer => {
+            db.deleteDepartment(answer);
+            console.log(`Removed ${answer.department} from the database`);
+            start();
         })
 }
 
-function viewByDept(department) {
-    console.log(department);
-    const query = `SELECT id, first_name, last_name, title, manager FROM employees WHERE department="${department}";`;
-    connection.query(query, (err, employee) => {
-        if (err) throw err;
-        console.table(employee);
-        start();
-    });
-}
+async function removeRole() {
+	const roles = await db.findAllRoles();
 
-function searchByManager() {
-    inquirer
-        .prompt({
-            name: "manager",
-            type: "list",
-            message: "Please select a manager",
-            choices: [
-                "Emmanuel Jucaban",
-                "Pooja Hegde",
-                "Musa Akbari"
-            ]
-        })
-        .then((choice) => {
-            console.log(choice);
-            const query = `SELECT id, first_name, last_name, title FROM employees WHERE manager="${choice}";`;
-    connection.query(query, (err, employee) => {
-        if (err) throw err;
-        console.table(employee);
-        start();
-    });
-        }
+	const roleChoices = roles.map(({ name, id}) => ({
+        name: name,
+        value:id
+    }));
+    console.log(roles);
+
+	inquirer
+        .prompt(
+            {
+                name: "role",
+                type: "list",
+                message: "Select the role to remove",
+                choices:roleChoices
+            }
         )
-}
-
-function viewByMgr(choice) {
-    console.log(choice);
-    
-}
-
-function removeEmployee() {
-    inquirer
-        .prompt([{
-            name: "firstName",
-            type: "input",
-            message: "Please enter the first name of the employee",
-        },
-        {
-            name: "lastName",
-            type: "input",
-            message: "Please enter the last name of the employee",
-        }]
-        )
-        .then(function ({ firstName, lastName }) {
-            const query = `DELETE FROM employees WHERE first_name = "${firstName}" and last_name = "${lastName}";`;
-    connection.query(query, (err, employee) => {
-        if (err) throw err;
-        console.table(employee);
-        start();
-})
+        .then(answer => {
+            db.deleteRole(answer);
+            console.log(`Removed ${answer.role} from the database`);
+            start();
         })
 }
 
-function updateRole() {
-    inquirer
-        .prompt([{
-            name: "firstName",
-            type: "input",
-            message: "Please enter the first name of the employee",
-        },
-        {
-            name: "lastName",
-            type: "input",
-            message: "Please enter the last name of the employee",
-        },
-        {
-            name: "newRole",
-            type: "input",
-            message: "Please enter the new role of the employee",
-        }
-    ]
+async function removeEmployee() {
+	const employees = await db.findAllEmployees();
+
+	const employeeChoices = employees.map(({ name, id}) => ({
+        name: name,
+        value:id
+    }));
+    console.log(roles);
+
+	inquirer
+        .prompt(
+            {
+                name: "employee",
+                type: "list",
+                message: "Select the employee to remove",
+                choices:employeeChoices
+            }
         )
-        .then((firstName, lastName, newRole) => {
-            const query = `UPDATE employees SET title = "${newRole}" WHERE first_name = "${firstName}" and last_name = "${lastName}";;`;
-    connection.query(query, (err, employee) => {
-        if (err) throw err;
-        console.table(employee);
-        start();
-})
-})
+        .then(answer => {
+            db.deleteEmployee(answer);
+            console.log(`Removed ${answer.employee} from the database`);
+            start();
+        })
 }
+
+
 
 start()
 
