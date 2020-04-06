@@ -67,6 +67,7 @@ function start() {
                         updateManager();
                         break;
                     case "Exit":
+                        process.exit(-1);
                         return;
                 }
             });
@@ -74,47 +75,42 @@ function start() {
 }
 
 async function viewAllEmployees() {
-    const employees = await db.findAllEmployees();
+    const employees = await db.findAll("employee");
     console.table(`${employees.length} employees found:`, employees);
     start();
 }
 
 async function viewAllRoles() {
-    const roles = await db.findAllRoles();
+    const roles = await db.findAll("role");
     console.table(`${roles.length} roles found:`, roles);
     start();
 }
 
 async function viewAllDepartments() {
-    const departments = await db.findAllDepartments();
+    const departments = await db.findAll("department");
     console.table(`${departments.length} departments found:`, departments);
     start();
 }
 
 async function addDepartment() {
-    const departments = await db.findAllDepartments();
-    const departmentChoices = departments.map(({ id, name }) => ({
-        name: name,
-        value: id
-    }));
     inquirer
         .prompt(
             {
-                name: "name",
+                name: "department",
                 type: "input",
                 message: "Please enter the name of the department",
             }
         )
         .then(answer => {
-            db.createDepartment(answer);
-            console.log(`Added ${answer.name} to the database`);
+            db.createDepartment(answer.department);
+            console.log(`Added ${answer.department} to the database`);
             start();
         })
 
 }
 
 async function addRole() {
-    const departments = await db.findAllDepartments();
+    const departments = await db.findAll("department");
     const departmentChoices = departments.map(({ id, name }) => ({
         name: name,
         value: id
@@ -148,21 +144,17 @@ async function addRole() {
 
 
 async function addEmployee() {
-    const departments = await db.findAllDepartments();
+    const departments = await db.findAll("department");
     const departmentChoices = departments.map(({ id, name }) => ({
         name: name,
         value: id
     }));
-    const roles = await db.findAllRoles();
+    const roles = await db.findAll("role");
     const roleChoices = roles.map(({ department_id, title }) => ({
         title: title,
         value: department_id
     }));
-    const managers = await db.findAllmanagers();
-    const managerChoices = managers.map(({ manager_id, first_name }) => ({
-        first_name: first_name,
-        value: manager_id
-    }));
+    
     inquirer
         .prompt(
             {
@@ -277,8 +269,6 @@ async function removeEmployee() {
             start();
         })
 }
-
-
 
 start()
 
