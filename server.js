@@ -113,21 +113,7 @@ async function addRole() {
         name: name,
         value: id
     }));
-    // console.log("departments",departments);
-    // console.log("departmentChoices",departmentChoices);
-    const employees = await db.findAll("employee");
-    const employeeChoices = employees.map(({ first_name,last_name,manager_id, role_id, id }) => ({
-        first_name: first_name,
-        last_name:last_name,
-        manager_id:manager_id,
-        role_id:role_id,
-        value: id
-    }));
-    // console.log("employees",employees);
-    // console.log("employeechoices", employeeChoices);
-    console.log("findAllEmployees")
-    const allEmployees= await db.findAllEmployee();
-    console.log(allEmployees);
+
     inquirer
         .prompt([
             {
@@ -163,8 +149,6 @@ async function addEmployee() {
         id: id,
         value: id
     }));
-    console.log("roles",roles);
-    console.log("roleChoices",roleChoices);
     
     const employees = await db.findAll("employee");
     const employeeChoices = employees.map(({ first_name,last_name,manager_id, role_id, id }) => ({
@@ -174,8 +158,6 @@ async function addEmployee() {
         role_id:role_id,
         value: id
     }));
-    console.log("employees",employees);
-    console.log("employeechoices", employeeChoices);
 
     inquirer
         .prompt([
@@ -203,9 +185,6 @@ async function addEmployee() {
             }
         ])
         .then(answer => {
-            console.log("---------------")
-            console.log(answer)
-            console.log("---------------")
             db.createEmployee(answer);
             console.log(`Added ${answer.first_name} ${answer.last_name} new employee to the database`);
             start();
@@ -243,8 +222,6 @@ async function removeRole() {
         title: title,
         value: id
     }));
-    console.log(roles);
-    console.log(roleChoices)
 
     inquirer
         .prompt(
@@ -298,8 +275,6 @@ async function updateRole() {
         title: title,
         value: id
     }));
-    console.log(roles);
-    console.log(roleChoices)
 
     inquirer
         .prompt([
@@ -317,11 +292,7 @@ async function updateRole() {
             }
         ])
         .then(answer => {
-            console.log(answer)
-            console.log(answer.oldRoleId)
-            console.log(answer.newRoleId)
             db.updateRole(answer);
-            console.log("hello")
             console.log(`UPdated role Id of the employee from ${answer.oldRoleId} to ${answer.newRoleId} in the database`);
             start();
         })

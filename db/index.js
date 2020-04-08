@@ -47,7 +47,6 @@ class DB {
 
 	}
 	updateRole(role) {
-		// return this.connection.query('UPDATE role SET id = ? WHERE id=?', roleId);
 		return this.connection.query(`UPDATE employee SET role_id = '${role.newRoleId}' WHERE role_id = '${role.oldRoleId}'`);
 	}
 }
