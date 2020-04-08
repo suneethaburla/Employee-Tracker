@@ -5,7 +5,7 @@ This project describes how to architect and build a solution for managing a comp
 
 The following database schema containing three tables has been designed:
 
-![Database Schema](Assets/schema.png)
+![alt Database Schema](./assets/schema.png)
 
 * **department**:
 
@@ -45,5 +45,5 @@ So that I can organize and plan my business
 ```
 
 
-![Employee Tracker](Assets/employee-tracker.gif)
+![Employee Tracker](./assets/employee-tracker.gif)
 
