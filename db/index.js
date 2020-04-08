@@ -17,20 +17,38 @@ class DB {
 	findAll(input) {
 		return this.connection.query(
 			`SELECT * FROM ${input}`);
-		
 	}
+	findAllEmployee() {
+		return this.connection.query(
+			"SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id LEFT JOIN employee manager on manager.id = employee.manager_id;"
+		);
+	}
+
+	findAllRole() {
+		return this.connection.query(
+			' SELECT role.id, role.title, department.name, role.salary FROM role LEFT JOIN department on role.department_id = department.id'
+		);
+	}
+	findAllDepartment() {
+		return this.connection.query(
+			' SELECT department.id, department.name, SUM (role.salary) FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department on role.department_id = department.id GROUP BY department.id, department.name'
+		);
+	}
+
 	deleteEmployee(employeeId) {
-		return this.connection.query('DELETE FR0M  employee WHERE id = ?', employeeId);
+		return this.connection.query(`DELETE FROM  employee WHERE id = '${employeeId}'`);
 	}
 	deleteRole(roleId) {
-		return this.connection.query('DELETE FROM role WHERE id = ?', roleId);
+		return this.connection.query(`DELETE FROM  department WHERE id = '${roleId}'`);
 		
 	}
 	deleteDepartment(departmentId) {
-		return this.connection.query('DELETE FROM  department WHERE id = ?', departmentId);
+		return this.connection.query(`DELETE FROM  department WHERE id = '${departmentId}'`);
+
 	}
-	updateRole(roleId) {
-		return this.connection.query('UPDATE role SET id = ? WHERE id=?', roleId);
+	updateRole(role) {
+		// return this.connection.query('UPDATE role SET id = ? WHERE id=?', roleId);
+		return this.connection.query(`UPDATE employee SET role_id = '${role.newRoleId}' WHERE role_id = '${role.oldRoleId}'`);
 	}
 }
 
